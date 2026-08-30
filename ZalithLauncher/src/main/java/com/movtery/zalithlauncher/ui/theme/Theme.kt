@@ -577,6 +577,84 @@ private val verdantDawnDark = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark.verdantDawn,
 )
 
+// kroxLight: Light-mode adaptation of the Krox palette.
+// Crimson Red #DC2626 primary on a pale charcoal/obsidian surface.
+private val kroxLight = lightColorScheme(
+    primary = Color(0xFFC01820),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFFFDAD6),
+    onPrimaryContainer = Color(0xFF6D000B),
+    secondary = Color(0xFFDC2626),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFFFDAD6),
+    onSecondaryContainer = Color(0xFF6D000B),
+    tertiary = Color(0xFFDC2626),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFFFDAD6),
+    onTertiaryContainer = Color(0xFF6D000B),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF6D000B),
+    background = Color(0xFFF4F4F5),
+    onBackground = Color(0xFF201A1A),
+    surface = Color(0xFFF4F4F5),
+    onSurface = Color(0xFF201A1A),
+    surfaceVariant = Color(0xFFE5E5E6),
+    onSurfaceVariant = Color(0xFF4F4F50),
+    outline = Color(0xFF827D7D),
+    outlineVariant = Color(0xFFD2CFCF),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFF2D2B2B),
+    inverseOnSurface = Color(0xFFF4F4F5),
+    inversePrimary = Color(0xFFFFB3AB),
+    surfaceDim = Color(0xFFE5E5E6),
+    surfaceBright = Color(0xFFF4F4F5),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFEEEEEF),
+    surfaceContainer = Color(0xFFE8E8E9),
+    surfaceContainerHigh = Color(0xFFE0E0E1),
+    surfaceContainerHighest = Color(0xFFD9D9DA),
+)
+
+private val kroxDark = darkColorScheme(
+    primary = Color(0xFFDC2626),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFF370B0B),
+    onPrimaryContainer = Color(0xFFFFDAD6),
+    secondary = Color(0xFFE69D96),
+    onSecondary = Color(0xFF5B110B),
+    secondaryContainer = Color(0xFF7D2A23),
+    onSecondaryContainer = Color(0xFFFFDAD6),
+    tertiary = Color(0xFFDC2626),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFF370B0B),
+    onTertiaryContainer = Color(0xFFFFDAD6),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF08080A),
+    onBackground = Color(0xFFEDE0E1),
+    surface = Color(0xFF121216),
+    onSurface = Color(0xFFE6E1E5),
+    surfaceVariant = Color(0xFF24242C),
+    onSurfaceVariant = Color(0xFFD8C2BE),
+    outline = Color(0xFF6F5B59),
+    outlineVariant = Color(0xFF4A3B3A),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFFE6E1E5),
+    inverseOnSurface = Color(0xFF312B2A),
+    inversePrimary = Color(0xFFBA1B1B),
+    surfaceDim = Color(0xFF121216),
+    surfaceBright = Color(0xFF38343C),
+    surfaceContainerLowest = Color(0xFF08080A),
+    surfaceContainerLow = Color(0xFF1A1A20),
+    surfaceContainer = Color(0xFF1F1F26),
+    surfaceContainerHigh = Color(0xFF2A2A32),
+    surfaceContainerHighest = Color(0xFF353540),
+)
+
 private fun customLight(
     color: Color,
     style: PaletteStyle,
@@ -629,6 +707,7 @@ fun ZalithLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldDark
                 ColorThemeType.URBAN_ASH -> urbanAshDark
                 ColorThemeType.VERDANT_DAWN -> verdantDawnDark
+                ColorThemeType.KROX -> kroxDark
                 ColorThemeType.CUSTOM -> customDark(
                     color = customColor,
                     style = customPaletteStyle
@@ -644,6 +723,7 @@ fun ZalithLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldLight
                 ColorThemeType.URBAN_ASH -> urbanAshLight
                 ColorThemeType.VERDANT_DAWN -> verdantDawnLight
+                ColorThemeType.KROX -> kroxLight
                 ColorThemeType.CUSTOM -> customLight(
                     color = customColor,
                     style = customPaletteStyle

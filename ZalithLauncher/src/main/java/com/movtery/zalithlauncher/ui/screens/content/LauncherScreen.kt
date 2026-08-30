@@ -173,6 +173,11 @@ fun LauncherScreen(
                 },
                 onInfoClick = {
                     showAboutDialog = true
+                },
+                onAccountClick = {
+                    backStackViewModel.mainScreen.navigateTo(
+                        screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                    )
                 }
             )
 

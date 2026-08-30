@@ -64,6 +64,8 @@
     <string name="theme_color_verdant_field">الشفق الأخضر</string>
     <string name="theme_color_urban_ash">الرماد الحضري</string>
     <string name="theme_color_verdant_dawn">فجر الغابة الصامتة</string>
+    <string name="theme_color_krox">Krox</string>
+    <string name="account">Account</string>
     <string name="theme_color_picker_title">أداة اختيار الألوان</string>
     <string name="theme_color_picker_edit_hex">تحرير الـ Hex</string>
     <string name="theme_color_picker_edit_hex_invalid">Hex غير صالح</string>

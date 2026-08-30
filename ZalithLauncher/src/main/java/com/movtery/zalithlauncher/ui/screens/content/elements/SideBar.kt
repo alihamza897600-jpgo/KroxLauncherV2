@@ -89,7 +89,8 @@ fun SideBar(
     isVisible: Boolean,
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
-    onInfoClick: () -> Unit
+    onInfoClick: () -> Unit,
+    onAccountClick: () -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
@@ -135,6 +136,7 @@ fun SideBar(
                     onFpsClick = onFpsClick,
                     onVersionsClick = onVersionsClick,
                     onInfoClick = onInfoClick,
+                    onAccountClick = onAccountClick,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
                 SideBarToggle(
@@ -153,6 +155,7 @@ private fun SideBarMenuContent(
     onFpsClick: () -> Unit,
     onVersionsClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
@@ -204,6 +207,16 @@ private fun SideBarMenuContent(
                     icon = painterResource(R.drawable.ic_info_outlined),
                     label = stringResource(R.string.about_launcher_title),
                     onClick = onInfoClick
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            StaggeredItem(delay = 240) {
+                SideBarShortcut(
+                    icon = painterResource(R.drawable.ic_person_outlined),
+                    label = stringResource(R.string.account),
+                    onClick = onAccountClick
                 )
             }
         }

@@ -58,7 +58,10 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -681,162 +684,179 @@ fun ModsManagerScreen(
             swapIn = isVisible
         )
 
-        VersionChunkBackground(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(all = 12.dp)
-                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-            paddingValues = PaddingValues()
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
         ) {
-            when (viewModel.modsState) {
-                LoadingState.None -> {
-                    var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
-                    /** 运行任务并刷新模组列表 */
-                    fun runProgress(task: () -> Unit) {
-                        viewModel.doInScope {
-                            withContext(Dispatchers.IO) {
-                                modsOperation = ModsOperation.Progress
-                                task()
-                                modsOperation = ModsOperation.None
-                                viewModel.refresh(context)
+            VersionChunkBackground(
+                modifier = Modifier.fillMaxSize(),
+                paddingValues = PaddingValues()
+            ) {
+                when (viewModel.modsState) {
+                    LoadingState.None -> {
+                        var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
+                        /** 运行任务并刷新模组列表 */
+                        fun runProgress(task: () -> Unit) {
+                            viewModel.doInScope {
+                                withContext(Dispatchers.IO) {
+                                    modsOperation = ModsOperation.Progress
+                                    task()
+                                    modsOperation = ModsOperation.None
+                                    viewModel.refresh(context)
+                                }
                             }
                         }
-                    }
 
-                    ModsOperation(
-                        modsOperation = modsOperation,
-                        updateOperation = { modsOperation = it },
-                        onDelete = { mod ->
-                            runProgress {
-                                FileUtils.deleteQuietly(mod.file)
-                            }
-                        }
-                    )
-
-                    Column {
-                        ModsActionsHeader(
-                            modifier = Modifier.fillMaxWidth(),
-                            nameFilter = viewModel.nameFilter,
-                            onNameFilterChange = { viewModel.updateFilter(it, context) },
-                            stateFilter = viewModel.stateFilter,
-                            onStateFilterChange = { viewModel.updateStateFilter(it, context) },
-                            allModsCount = viewModel.allMods.size,
-                            enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
-                            disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
-                            supportedSortByEnums = viewModel.supportedSortByEnums,
-                            sortByEnum = viewModel.sortByEnum,
-                            onSortByChanged = { viewModel.updateSortBy(it, context) },
-                            isAscending = viewModel.isAscending,
-                            onToggleSortOrder = { viewModel.updateSortOrder(context) },
-                            hasModLoader = hasModLoader,
-                            onUpdateMods = {
-                                if (
-                                    updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                    viewModel.deleteAllOperation == DeleteAllOperation.None
-                                ) {
-                                    updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
-                                }
-                            },
-                            modsDir = modsDir,
-                            onDeleteAll = {
-                                if (
-                                    updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                    viewModel.deleteAllOperation == DeleteAllOperation.None &&
-                                    viewModel.selectedMods.isNotEmpty()
-                                ) {
-                                    viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                        files = viewModel.selectedMods.map { mod ->
-                                            mod.localMod.file
-                                        }
-                                    )
-                                }
-                            },
-                            isModsSelected = viewModel.selectedMods.isNotEmpty(),
-                            canUpdate = viewModel.canUpdate,
-                            canUpdateAll = viewModel.canUpdateAll,
-                            onSelectAll = {
-                                viewModel.selectAllMods()
-                            },
-                            onClearModsSelected = {
-                                viewModel.clearSelected()
-                            },
-                            onEnableAll = {
-                                viewModel.enableSelectedMods()
-                            },
-                            onDisableAll = {
-                                viewModel.disableSelectedMods()
-                            },
-                            onUpdateAllMods = {
-                                if (
-                                    updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                    viewModel.deleteAllOperation == DeleteAllOperation.None
-                                ) {
-                                    val allUpdatableMods = viewModel.allMods.filter { it.localMod.checkRemote }
-                                    updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(allUpdatableMods)
-                                }
-                            },
-                            swapToDownload = swapToDownload,
-                            refresh = { viewModel.refresh(context) },
-                            submitError = submitError
-                        )
-
-                        ModsList(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            hasModLoader = hasModLoader,
-                            modsList = viewModel.filteredMods,
-                            selectedMods = viewModel.selectedMods,
-                            removeFromSelected = { mod ->
-                                viewModel.selectedMods.remove(mod)
-                                viewModel.checkCanUpdate()
-                            },
-                            addToSelected = { mod ->
-                                viewModel.selectedMods.add(mod)
-                                viewModel.checkCanUpdate()
-                            },
-                            onLoad = { mod ->
-                                viewModel.loadMod(mod)
-                            },
-                            onForceRefresh = { mod ->
-                                viewModel.loadMod(mod, loadFromCache = false)
-                            },
-                            onEnable = { mod ->
-                                //启用和禁用模组应该避免刷新所有模组，否则将会极度影响体验
-                                viewModel.doInScope {
-                                    withContext(Dispatchers.IO) {
-                                        mod.localMod.enable()
-                                    }
-                                    withContext(Dispatchers.Main) {
-                                        viewModel.refreshCounter()
-                                    }
-                                }
-                            },
-                            onDisable = { mod ->
-                                viewModel.doInScope {
-                                    withContext(Dispatchers.IO) {
-                                        mod.localMod.disable()
-                                    }
-                                    withContext(Dispatchers.Main) {
-                                        viewModel.refreshCounter()
-                                    }
-                                }
-                            },
-                            onSwapMoreInfo = onSwapMoreInfo,
+                        ModsOperation(
+                            modsOperation = modsOperation,
+                            updateOperation = { modsOperation = it },
                             onDelete = { mod ->
-                                modsOperation = ModsOperation.Delete(mod.localMod)
+                                runProgress {
+                                    FileUtils.deleteQuietly(mod.file)
+                                }
                             }
                         )
+
+                        Column {
+                            ModsActionsHeader(
+                                modifier = Modifier.fillMaxWidth(),
+                                nameFilter = viewModel.nameFilter,
+                                onNameFilterChange = { viewModel.updateFilter(it, context) },
+                                stateFilter = viewModel.stateFilter,
+                                onStateFilterChange = { viewModel.updateStateFilter(it, context) },
+                                allModsCount = viewModel.allMods.size,
+                                enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
+                                disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
+                                supportedSortByEnums = viewModel.supportedSortByEnums,
+                                sortByEnum = viewModel.sortByEnum,
+                                onSortByChanged = { viewModel.updateSortBy(it, context) },
+                                isAscending = viewModel.isAscending,
+                                onToggleSortOrder = { viewModel.updateSortOrder(context) },
+                                hasModLoader = hasModLoader,
+                                onUpdateMods = {
+                                    if (
+                                        updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                                        viewModel.deleteAllOperation == DeleteAllOperation.None
+                                    ) {
+                                        updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
+                                    }
+                                },
+                                modsDir = modsDir,
+                                onDeleteAll = {
+                                    if (
+                                        updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                                        viewModel.deleteAllOperation == DeleteAllOperation.None &&
+                                        viewModel.selectedMods.isNotEmpty()
+                                    ) {
+                                        viewModel.deleteAllOperation = DeleteAllOperation.Warning(
+                                            files = viewModel.selectedMods.map { mod ->
+                                                mod.localMod.file
+                                            }
+                                        )
+                                    }
+                                },
+                                isModsSelected = viewModel.selectedMods.isNotEmpty(),
+                                canUpdate = viewModel.canUpdate,
+                                canUpdateAll = viewModel.canUpdateAll,
+                                onSelectAll = {
+                                    viewModel.selectAllMods()
+                                },
+                                onClearModsSelected = {
+                                    viewModel.clearSelected()
+                                },
+                                onEnableAll = {
+                                    viewModel.enableSelectedMods()
+                                },
+                                onDisableAll = {
+                                    viewModel.disableSelectedMods()
+                                },
+                                onUpdateAllMods = {
+                                    if (
+                                        updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                                        viewModel.deleteAllOperation == DeleteAllOperation.None
+                                    ) {
+                                        val allUpdatableMods = viewModel.allMods.filter { it.localMod.checkRemote }
+                                        updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(allUpdatableMods)
+                                    }
+                                },
+                                swapToDownload = swapToDownload,
+                                refresh = { viewModel.refresh(context) },
+                                submitError = submitError
+                            )
+
+                            ModsList(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                hasModLoader = hasModLoader,
+                                modsList = viewModel.filteredMods,
+                                selectedMods = viewModel.selectedMods,
+                                removeFromSelected = { mod ->
+                                    viewModel.selectedMods.remove(mod)
+                                    viewModel.checkCanUpdate()
+                                },
+                                addToSelected = { mod ->
+                                    viewModel.selectedMods.add(mod)
+                                    viewModel.checkCanUpdate()
+                                },
+                                onLoad = { mod ->
+                                    viewModel.loadMod(mod)
+                                },
+                                onForceRefresh = { mod ->
+                                    viewModel.loadMod(mod, loadFromCache = false)
+                                },
+                                onEnable = { mod ->
+                                    //启用和禁用模组应该避免刷新所有模组，否则将会极度影响体验
+                                    viewModel.doInScope {
+                                        withContext(Dispatchers.IO) {
+                                            mod.localMod.enable()
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            viewModel.refreshCounter()
+                                        }
+                                    }
+                                },
+                                onDisable = { mod ->
+                                    viewModel.doInScope {
+                                        withContext(Dispatchers.IO) {
+                                            mod.localMod.disable()
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            viewModel.refreshCounter()
+                                        }
+                                    }
+                                },
+                                onSwapMoreInfo = onSwapMoreInfo,
+                                onDelete = { mod ->
+                                    modsOperation = ModsOperation.Delete(mod.localMod)
+                                }
+                            )
+                        }
+                    }
+                    LoadingState.Loading -> {
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
+                        }
                     }
                 }
-                LoadingState.Loading -> {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LoadingIndicator()
-                    }
-                }
+            }
+
+            FloatingActionButton(
+                onClick = swapToDownload,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(all = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.generic_download)
+                )
             }
         }
     }

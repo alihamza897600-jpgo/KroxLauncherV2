@@ -91,7 +91,7 @@ fun CapeGalleryScreen(
                 })
             }
             defaultRequest {
-                header("User-Agent", "ZalithLauncher/2.0")
+                header("User-Agent", "KroxLauncher/2.0")
             }
         }
     }
@@ -254,7 +254,7 @@ private fun OfficialCapeCard(
                 val bytes = withContext(Dispatchers.IO) {
                     val url = java.net.URL(cape.texture)
                     val connection = url.openConnection()
-                    connection.setRequestProperty("User-Agent", "ZalithLauncher/2.0")
+                    connection.setRequestProperty("User-Agent", "KroxLauncher/2.0")
                     connection.connectTimeout = 5000
                     connection.getInputStream().readBytes()
                 }

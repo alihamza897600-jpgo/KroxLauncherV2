@@ -88,6 +88,7 @@
     <string name="generic_edit">Edit</string>
     <string name="generic_view">View</string>
     <string name="generic_info">Info</string>
+    <string name="account">Account</string>
     <string name="generic_minimize">Minimize</string>
     <string name="generic_scroll_top">Scroll to Top</string>
     <!-- Page Title -->
@@ -157,6 +158,7 @@
     <string name="theme_color_verdant_field">Verdant Twilight</string>
     <string name="theme_color_urban_ash">Urban Ash</string>
     <string name="theme_color_verdant_dawn">Silent Forest Dawn</string>
+    <string name="theme_color_krox">Krox</string>
     <string name="theme_color_picker_title">Color Picker</string>
     <string name="theme_color_picker_edit_hex">Edit Hex</string>
     <string name="theme_color_picker_edit_hex_invalid">Invalid Hex</string>

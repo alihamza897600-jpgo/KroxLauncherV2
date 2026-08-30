@@ -38,6 +38,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
@@ -528,41 +532,42 @@ private fun VersionsLayout(
         swapIn = isVisible
     )
 
-    BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) },
-        shape = MaterialTheme.shapes.extraLarge
-    ) {
-        if (isRefreshing) { //版本正在刷新中
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                LoadingIndicator()
-            }
-        } else {
-            var versionsOperation by remember { mutableStateOf<VersionsOperation>(VersionsOperation.None) }
-            VersionsOperation(
-                versionsOperation = versionsOperation,
-                updateVersionsOperation = { versionsOperation = it },
-                submitError = submitError
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        BackgroundCard(
+            modifier = modifier.offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) },
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            if (isRefreshing) { //版本正在刷新中
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingIndicator()
+                }
+            } else {
+                var versionsOperation by remember { mutableStateOf<VersionsOperation>(VersionsOperation.None) }
+                VersionsOperation(
+                    versionsOperation = versionsOperation,
+                    updateVersionsOperation = { versionsOperation = it },
+                    submitError = submitError
+                )
 
-            Column(modifier = Modifier.fillMaxSize()) {
-                CardTitleLayout {
-                    val scrollState = rememberScrollState()
-                    Row(
-                        modifier = Modifier
-                            .fadeEdge(
-                                state = scrollState,
-                                length = 32.dp,
-                                direction = EdgeDirection.Horizontal
-                            )
-                            .fillMaxWidth()
-                            .horizontalScroll(state = scrollState)
-                            .padding(all = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    CardTitleLayout {
+                        val scrollState = rememberScrollState()
+                        Row(
+                            modifier = Modifier
+                                .fadeEdge(
+                                    state = scrollState,
+                                    length = 32.dp,
+                                    direction = EdgeDirection.Horizontal
+                                )
+                                .fillMaxWidth()
+                                .horizontalScroll(state = scrollState)
+                                .padding(all = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                         IconTextButton(
                             onClick = onRefresh,
                             painter = painterResource(R.drawable.ic_refresh),
@@ -595,6 +600,7 @@ private fun VersionsLayout(
                             onClick = { onCategoryChange(VersionCategory.MODLOADER) }
                         )
                     }
+                }
                 }
 
                 if (versions.isNotEmpty()) {
@@ -655,6 +661,20 @@ private fun VersionsLayout(
                     }
                 }
             }
+        }
+
+        FloatingActionButton(
+            onClick = onInstall,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(all = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(R.string.versions_manage_install_new)
+            )
         }
     }
 }
