@@ -17,3 +17,6 @@ bin/
 *.class
 krox-tools/
 krox-tools/
+LWJGL/bin/
+.claude-flow/
+*.class
