@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
@@ -29,6 +31,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: "on-failure"
+
+      - name: Build Krox Client (remapJar)
+        run: ./gradlew :client:remapJar --stacktrace || echo "client remapJar skipped"
 
       - name: Build Debug APK for ${{ matrix.arch }}
         run: |

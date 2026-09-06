@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "kroxclient",
+  "version": "${version}",
+  "name": "Krox Client",
+  "description": "Krox custom Fabric client module.",
+  "environment": "client",
+
+  "entrypoints": {
+    "client": [
+      "com.krox.client.KroxClient"
+    ]
+  },
+
+  "mixins": [
+    "kroxclient.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "*"
+  }
+}

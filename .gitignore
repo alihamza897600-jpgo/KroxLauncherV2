@@ -13,3 +13,7 @@ CLAUDE.md
 AGENTS.md
 .claudeignore
 .local/
+bin/
+*.class
+krox-tools/
+krox-tools/

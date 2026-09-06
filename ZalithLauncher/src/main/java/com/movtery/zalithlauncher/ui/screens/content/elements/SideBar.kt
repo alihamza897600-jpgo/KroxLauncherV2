@@ -219,16 +219,6 @@ private fun SideBarMenuContent(
                     onClick = onAccountClick
                 )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            StaggeredItem(delay = 300) {
-                SideBarShortcut(
-                    icon = painterResource(R.drawable.ic_person_outlined),
-                    label = stringResource(R.string.account),
-                    onClick = onAccountClick
-                )
-            }
         }
     }
 }

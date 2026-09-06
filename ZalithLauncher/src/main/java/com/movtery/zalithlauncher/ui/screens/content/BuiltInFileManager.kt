@@ -830,6 +830,12 @@ fun BuiltInFileManagerScreen(
                         }
                     }
 
+                    FileManagerShortcutBar(
+                        rootDirectory = rootDirectory,
+                        currentDirectory = currentDirectory,
+                        onNavigate = { currentDirectory = it }
+                    )
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -1566,7 +1572,7 @@ private fun PropertiesDialog(files: List<File>, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.file_manager_properties_close)) }
+            TextButton(onClick = { onDismiss() }) { Text(stringResource(R.string.file_manager_properties_close)) }
         }
     })
 }
@@ -1616,6 +1622,64 @@ private fun buildClipboardLabel(files: List<File>, isCut: Boolean): String {
             "$fileCount ${if (fileCount == 1) "file" else "files"} $op"
         else ->
             "$folderCount ${if (folderCount == 1) "folder" else "folders"} $op"
+    }
+}
+
+@Composable
+private fun FileManagerShortcutBar(
+    rootDirectory: File,
+    currentDirectory: File,
+    onNavigate: (File) -> Unit
+) {
+    val shortcuts = remember { listOf("mods", "saves", "resourcepacks", "shaderpacks", "logs") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        shortcuts.forEach { name ->
+            val target = remember(rootDirectory, name) { File(rootDirectory, name) }
+            val selected = remember(currentDirectory, target) {
+                val base = target.absolutePath
+                currentDirectory.absolutePath == base ||
+                    currentDirectory.absolutePath.startsWith(base + File.separator)
+            }
+            ShortcutChip(
+                label = "/$name",
+                selected = selected,
+                onClick = {
+                    if (!target.exists()) target.mkdirs()
+                    onNavigate(target)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShortcutChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val bg = if (selected) Color(0xFFDC2626) else Color(0xFF24242C)
+    val fg = if (selected) Color.White else Color(0xFFF5F5F5)
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(bg)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+            color = fg,
+            maxLines = 1
+        )
     }
 }
 

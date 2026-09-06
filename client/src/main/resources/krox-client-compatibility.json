@@ -1,0 +1,11 @@
+{
+  "artifactId": "krox-client",
+
+  "supportedTargets": [
+    {
+      "minecraftVersion": "1.21.11",
+      "loader": "fabric",
+      "enabled": true
+    }
+  ]
+}

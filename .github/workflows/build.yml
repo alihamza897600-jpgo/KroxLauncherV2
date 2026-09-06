@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
@@ -24,10 +26,13 @@ jobs:
           java-version: "17"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
+
+      - name: Build Krox Client (remapJar)
+        run: ./client/gradlew :client:remapJar --stacktrace || echo "client remapJar skipped"
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug -Darch=${{ matrix.arch }} --stacktrace

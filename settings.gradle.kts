@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://maven.fabricmc.net/") }
     }
 }
 
@@ -16,10 +17,11 @@ plugins {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://maven.fabricmc.net/") }
     }
 }
 
@@ -30,3 +32,4 @@ include(":LayerController")
 include(":ColorPicker")
 include(":Terracotta")
 include(":InputMap")
+include(":client")

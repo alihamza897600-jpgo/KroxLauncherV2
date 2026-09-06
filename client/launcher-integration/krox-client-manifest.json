@@ -1,0 +1,15 @@
+{
+  "id": "krox-client",
+
+  "artifact": "GENERATED_BY_GRADLE",
+
+  "activation": {
+    "minecraftVersions": [
+      "1.21.11"
+    ],
+
+    "loaders": [
+      "fabric"
+    ]
+  }
+}

@@ -129,6 +129,9 @@ import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import com.movtery.zalithlauncher.game.account.AccountsManager
 
 @Composable
 fun MainScreen(
@@ -200,8 +203,9 @@ fun MainScreen(
             TopBar(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
+                    .height(56.dp),
                 mainScreenKey = mainScreenKey,
+                kIconPainter = painterResource(R.drawable.ic_launcher_foreground),
                 inLauncherScreen = inLauncherScreen,
                 taskRunning = tasks.isEmpty(),
                 isTasksExpanded = isTaskMenuExpanded,
@@ -239,6 +243,13 @@ fun MainScreen(
                 changeExpandedState = {
                     changeTasksExpandedState()
                 },
+            )
+
+            ProfileAccountHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentColor = onBackgroundColor(),
             )
 
             Box(
@@ -287,6 +298,7 @@ private fun <E: TitledNavKey> TopBar(
     toMultiplayerScreen: () -> Unit,
     toRecordingsScreen: () -> Unit,
     changeExpandedState: () -> Unit,
+    kIconPainter: Painter = painterResource(R.drawable.ic_launcher_foreground),
 ) {
     val festivals = LocalFestivals.current
 
@@ -529,6 +541,46 @@ private fun TopBarRailItem(
         selectedPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
         unSelectedPadding = PaddingValues(all = 8.dp),
     )
+}
+
+/** Profile account header displayed at the top of the home screen */
+@Composable
+private fun ProfileAccountHeader(
+    modifier: Modifier = Modifier,
+    contentColor: Color = MaterialTheme.colorScheme.onBackground,
+) {
+    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (account != null) {
+            Text(
+                text = account!!.username,
+                style = MaterialTheme.typography.titleSmall,
+                color = contentColor,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+            Text(
+                text = account!!.profileId,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.7f),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.account_no_account),
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.5f),
+            )
+        }
+    }
 }
 
 @Composable

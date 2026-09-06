@@ -1,0 +1,9 @@
+{
+  "minecraftVersions": [
+    "1.21.11"
+  ],
+  "loaders": [
+    "fabric"
+  ],
+  "minLoaderVersion": "0.16.14"
+}
