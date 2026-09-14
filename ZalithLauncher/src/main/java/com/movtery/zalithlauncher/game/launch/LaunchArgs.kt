@@ -50,6 +50,10 @@ import com.movtery.zalithlauncher.utils.string.isLowerTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.utils.string.toUnicodeEscaped
 import java.io.File
+import java.io.FileOutputStream
+import java.util.jar.Attributes
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
 
 private const val TAG = "LaunchArgs"
 
@@ -240,7 +244,9 @@ class LaunchArgs(
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
+        val lwjgl3Path = getLWJGL3ClassPath()
+        val libClasspath = generateLaunchClassPath(gameManifest)
+        val classpathJarPath = createClasspathJar(libClasspath, lwjgl3Path)
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
@@ -266,7 +272,7 @@ class LaunchArgs(
                 }
                 argument == $$"${classpath}" -> {
                     hasClasspath = true
-                    launchClassPath
+                    classpathJarPath
                 }
                 else -> argument
             }
@@ -282,8 +288,74 @@ class LaunchArgs(
             replacedArgs
         } else {
             //不包含 ${classpath} 配置，则需要手动添加
-            replacedArgs + arrayOf("-cp", launchClassPath)
+            replacedArgs + arrayOf("-cp", classpathJarPath)
         }
+    }
+
+    /**
+     * Creates a single jar with a Class-Path manifest attribute containing all
+     * classpath entries. This avoids passing an extremely long -cp string that
+     * can exceed OS ARG_MAX limits or cause OOM during JVM startup.
+     * The jar is written to the cache directory and reused if entries haven't changed.
+     */
+    private var lastClasspathJar: File? = null
+    private var lastClasspathHash: Int = 0
+
+    private fun createClasspathJar(libClasspath: String, lwjgl3Path: String): String {
+        val seen = LinkedHashSet<String>()
+        val jarFiles = mutableListOf<File>()
+        libClasspath.split(":").forEach { path ->
+            if (path.isNotEmpty() && seen.add(path)) jarFiles.add(File(path))
+        }
+        if (lwjgl3Path.isNotEmpty()) {
+            lwjgl3Path.split(":").forEach { path ->
+                if (path.isNotEmpty() && seen.add(path)) jarFiles.add(File(path))
+            }
+        }
+        if (clientJar.exists() && seen.add(clientJar.absolutePath)) jarFiles.add(clientJar)
+
+        // Filter to only existing files
+        val existingFiles = jarFiles.filter { it.exists() }
+        if (existingFiles.isEmpty()) {
+            return "$lwjgl3Path:$libClasspath${if (clientJar.exists()) ":${clientJar.absolutePath}" else ""}"
+        }
+
+        val hash = existingFiles.map { it.absolutePath }.hashCode()
+        val cacheDir = File(PathManager.DIR_CACHE, "classpath-cache")
+        cacheDir.mkdirs()
+
+        // Reuse existing jar if entries haven't changed
+        lastClasspathJar?.takeIf { it.exists() }?.let { existing ->
+            if (lastClasspathHash == hash) return existing.absolutePath
+        }
+
+        val jarFile = File(cacheDir, "zalith-classpath-${hash}.jar")
+        var jar: JarOutputStream? = null
+        try {
+            val manifest = Manifest()
+            val mainAttrs = manifest.mainAttributes
+            mainAttrs[Attributes.Name.MANIFEST_VERSION] = "1.0"
+            // Class-Path in manifest uses space-separated relative URLs from the jar location
+            // We use file: URLs for absolute paths
+            val classpathAttr = existingFiles.joinToString(" ") { it.toURI().toString() }
+            mainAttrs[Attributes.Name.CLASS_PATH] = classpathAttr
+
+            jar = JarOutputStream(FileOutputStream(jarFile), manifest)
+            // Add a dummy entry to make it a valid jar
+            val dummyEntry = java.util.jar.JarEntry("META-INF/")
+            jar.putNextEntry(dummyEntry)
+            jar.closeEntry()
+            jar.finish()
+        } catch (_: Exception) {
+            // Fallback to direct classpath if jar creation fails
+            return "$lwjgl3Path:$libClasspath${if (clientJar.exists()) ":${clientJar.absolutePath}" else ""}"
+        } finally {
+            jar?.close()
+        }
+
+        lastClasspathJar = jarFile
+        lastClasspathHash = hash
+        return jarFile.absolutePath
     }
 
     /**

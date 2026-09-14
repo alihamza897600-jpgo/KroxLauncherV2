@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardDefaults
@@ -196,20 +197,15 @@ fun MainScreen(
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+            KroxVerticalSidebar(
                 mainScreenKey = mainScreenKey,
-                kIconPainter = painterResource(R.drawable.ic_launcher_foreground),
                 inLauncherScreen = inLauncherScreen,
                 taskRunning = tasks.isEmpty(),
                 isTasksExpanded = isTaskMenuExpanded,
-                contentColor = onBackgroundColor(),
                 onScreenBack = {
                     screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
                 },
@@ -240,21 +236,20 @@ fun MainScreen(
                         screenKey = NormalNavKey.Recordings
                     )
                 },
+                toAccountScreen = {
+                    screenBackStackModel.mainScreen.removeAndNavigateTo(
+                        removes = screenBackStackModel.clearBeforeNavKeys,
+                        screenKey = NormalNavKey.AccountManager()
+                    )
+                },
                 changeExpandedState = {
                     changeTasksExpandedState()
-                },
-            )
-
-            ProfileAccountHeader(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                contentColor = onBackgroundColor(),
+                }
             )
 
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxHeight()
                     .weight(1f)
             ) {
                 NavigationUI(
@@ -283,13 +278,12 @@ fun MainScreen(
 }
 
 @Composable
-private fun <E: TitledNavKey> TopBar(
+private fun <E: TitledNavKey> KroxVerticalSidebar(
     mainScreenKey: E?,
     inLauncherScreen: Boolean,
     taskRunning: Boolean,
     isTasksExpanded: Boolean,
     modifier: Modifier = Modifier,
-    contentColor: Color,
     onScreenBack: () -> Unit,
     toMainScreen: () -> Unit,
     toSettingsScreen: () -> Unit,
@@ -297,287 +291,142 @@ private fun <E: TitledNavKey> TopBar(
     toFileManagerScreen: () -> Unit,
     toMultiplayerScreen: () -> Unit,
     toRecordingsScreen: () -> Unit,
+    toAccountScreen: () -> Unit,
     changeExpandedState: () -> Unit,
-    kIconPainter: Painter = painterResource(R.drawable.ic_launcher_foreground),
 ) {
-    val festivals = LocalFestivals.current
-
     val inFileManagerScreen = mainScreenKey is NormalNavKey.BuiltInFileManager
     val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
     val inRecordingsScreen = mainScreenKey is NormalNavKey.Recordings
     val inDownloadScreen = mainScreenKey is NestedNavKey.Download
     val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
+    val inAccountScreen = mainScreenKey is NormalNavKey.AccountManager
 
-    CompositionLocalProvider(
-        LocalContentColor provides contentColor
+    Surface(
+        modifier = modifier
+            .fillMaxHeight()
+            .width(72.dp),
+        color = cardColor(false),
+        tonalElevation = 3.dp
     ) {
-        ConstraintLayout(modifier = modifier) {
-            val (backCenter, title, endButtons) = createRefs()
-
-            val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-
-            Row(
-                modifier = Modifier
-                    .constrainAs(backCenter) {
-                        start.linkTo(parent.start)
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                    }
-                    .fillMaxHeight()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            IconButton(
+                onClick = toMainScreen,
+                modifier = Modifier.size(48.dp)
             ) {
-                AnimatedVisibility(
-                    visible = !inLauncherScreen
-                ) {
-                    Row(modifier = Modifier.fillMaxHeight()) {
-                        Spacer(Modifier.width(12.dp))
-
-                        IconButton(
-                            modifier = Modifier.fillMaxHeight(),
-                            onClick = {
-                                if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许返回
-                                    backDispatcher?.onBackPressed() ?: run {
-                                        onScreenBack()
-                                    }
-                                }
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter = painterResource(R.drawable.ic_arrow_back),
-                                contentDescription = stringResource(R.string.generic_back)
-                            )
-                        }
-
-                        IconButton(
-                            modifier = Modifier.fillMaxHeight(),
-                            onClick = {
-                                if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许回到主页面
-                                    toMainScreen()
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_home_filled),
-                                contentDescription = stringResource(R.string.generic_main_menu)
-                            )
-                        }
-                    }
-                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = stringResource(R.string.generic_main_menu),
+                    modifier = Modifier.size(32.dp),
+                    tint = Color.Unspecified
+                )
             }
-            val parentRes = mainScreenKey?.title
-            val childRes = (mainScreenKey as? BackStackNavKey<*>)?.currentKey?.title
 
-            Crossfade(
-                modifier = Modifier.constrainAs(title) {
-                    centerVerticallyTo(parent)
-                    start.linkTo(backCenter.end, margin = 16.dp)
-                },
-                targetState = parentRes to childRes
-            ) { (parent, child) ->
-                val style = MaterialTheme.typography.titleMedium
-                val softWarp = false
-                val maxLines = 1
+            androidx.compose.material3.HorizontalDivider(
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .alpha(0.2f)
+            )
 
-                if (parent == null) {
-                    Column(
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        if (festivals.isEmpty()) {
-                            Text(
-                                text = BuildKeys.LAUNCHER_IDENTIFIER,
-                                style = style,
-                                softWrap = softWarp,
-                                maxLines = maxLines
-                            )
-                        } else {
-                            FestivalTitleText(
-                                festivals = festivals,
-                                style = style,
-                                maxLines = maxLines
-                            )
-                        }
-                        Text(
-                            modifier = Modifier.alpha(0.6f),
-                            text = stringResource(R.string.launcher_fork_subtitle),
-                            style = MaterialTheme.typography.labelSmall,
-                            softWrap = softWarp,
-                            maxLines = 1
-                        )
-                    }
-                } else {
-                    val titleText = if (child != null) {
-                        androidText(parent, androidText(" - "), child)
-                    } else {
-                        parent
-                    }
+            SidebarNavButton(
+                selected = inLauncherScreen,
+                painter = painterResource(R.drawable.ic_home_filled),
+                label = stringResource(R.string.generic_main_menu),
+                onClick = toMainScreen
+            )
 
-                    AndroidStringText(
-                        text = titleText,
-                        style = style,
-                        softWrap = softWarp,
-                        maxLines = maxLines
+            SidebarNavButton(
+                selected = inDownloadScreen,
+                painter = painterResource(R.drawable.ic_download_2_filled),
+                label = stringResource(R.string.generic_download),
+                onClick = toDownloadScreen
+            )
+
+            SidebarNavButton(
+                selected = inMultiplayerScreen,
+                painter = painterResource(R.drawable.ic_group_filled),
+                label = stringResource(R.string.terracotta),
+                onClick = toMultiplayerScreen
+            )
+
+            SidebarNavButton(
+                selected = inFileManagerScreen,
+                painter = painterResource(R.drawable.ic_folder_filled),
+                label = stringResource(R.string.page_title_file_manager),
+                onClick = toFileManagerScreen
+            )
+
+            SidebarNavButton(
+                selected = inRecordingsScreen,
+                painter = painterResource(R.drawable.ic_videocam_filled),
+                label = stringResource(R.string.page_title_recordings),
+                onClick = toRecordingsScreen
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            if (!(isTasksExpanded || taskRunning)) {
+                IconButton(
+                    onClick = changeExpandedState,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_assignment_filled),
+                        contentDescription = stringResource(R.string.main_task_menu),
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .constrainAs(endButtons) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end, margin = 12.dp)
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                AnimatedVisibility(
-                    visible = !(isTasksExpanded || taskRunning),
-                    enter = slideInVertically(
-                        initialOffsetY = { -50 }
-                    ) + fadeIn(),
-                    exit = slideOutVertically(
-                        targetOffsetY = { -50 }
-                    ) + fadeOut()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .clip(shape = MaterialTheme.shapes.large)
-                            .clickable { changeExpandedState() }
-                            .padding(all = 8.dp)
-                            .width(120.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        LinearProgressIndicator(modifier = Modifier.weight(1f))
-                        Icon(
-                            modifier = Modifier.size(22.dp),
-                            painter = painterResource(R.drawable.ic_assignment_filled),
-                            contentDescription = stringResource(R.string.main_task_menu)
-                        )
-                    }
-                }
+            SidebarNavButton(
+                selected = inAccountScreen,
+                painter = painterResource(R.drawable.ic_person_outlined),
+                label = stringResource(R.string.account),
+                onClick = toAccountScreen
+            )
 
-                TopBarRailItem(
-                    selected = inRecordingsScreen,
-                    painter = painterResource(R.drawable.ic_videocam_filled),
-                    text = stringResource(R.string.page_title_recordings),
-                    onClick = {
-                        if (!inRecordingsScreen) toRecordingsScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inFileManagerScreen,
-                    painter = painterResource(R.drawable.ic_folder_filled),
-                    text = stringResource(R.string.page_title_file_manager),
-                    onClick = {
-                        if (!inFileManagerScreen) toFileManagerScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inMultiplayerScreen,
-                    painter = painterResource(R.drawable.ic_group_filled),
-                    text = stringResource(R.string.terracotta),
-                    onClick = {
-                        if (!inMultiplayerScreen) toMultiplayerScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inDownloadScreen,
-                    painter = painterResource(R.drawable.ic_download_2_filled),
-                    text = stringResource(R.string.generic_download),
-                    onClick = {
-                        if (!inDownloadScreen) toDownloadScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inSettingsScreen,
-                    painter = painterResource(R.drawable.ic_settings_filled),
-                    text = stringResource(R.string.generic_setting),
-                    onClick = {
-                        if (!inSettingsScreen) toSettingsScreen()
-                    },
-                )
-            }
+            SidebarNavButton(
+                selected = inSettingsScreen,
+                painter = painterResource(R.drawable.ic_settings_filled),
+                label = stringResource(R.string.generic_setting),
+                onClick = toSettingsScreen
+            )
         }
     }
 }
 
 @Composable
-private fun TopBarRailItem(
+private fun SidebarNavButton(
     selected: Boolean,
     painter: Painter,
-    text: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    textStyle: TextStyle = MaterialTheme.typography.labelMedium
+    label: String,
+    onClick: () -> Unit
 ) {
-    TextRailItem(
-        modifier = modifier,
+    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+
+    Surface(
         onClick = onClick,
-        text = {
-            AnimatedVisibility(visible = selected) {
-                Row {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = text,
-                        style = textStyle
-                    )
-                }
-            }
-        },
-        icon = {
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(12.dp)),
+        color = containerColor,
+        contentColor = contentColor
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Icon(
                 painter = painter,
-                contentDescription = text
-            )
-        },
-        selected = selected,
-        selectedPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-        unSelectedPadding = PaddingValues(all = 8.dp),
-    )
-}
-
-/** Profile account header displayed at the top of the home screen */
-@Composable
-private fun ProfileAccountHeader(
-    modifier: Modifier = Modifier,
-    contentColor: Color = MaterialTheme.colorScheme.onBackground,
-) {
-    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        if (account != null) {
-            Text(
-                text = account!!.username,
-                style = MaterialTheme.typography.titleSmall,
-                color = contentColor,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-            )
-            Text(
-                text = account!!.profileId,
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.7f),
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.account_no_account),
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.5f),
+                contentDescription = label,
+                modifier = Modifier.size(24.dp)
             )
         }
     }
