@@ -48,6 +48,7 @@ import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.plugins.krox.KroxClientBundler
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -115,6 +116,20 @@ class GameLauncher(
             .setManifest(manifest)
             .setInheriting()
             .build()
+
+        // krox client auto-deploy (1.21.11 Fabric only; no-op otherwise, preserves other mods)
+        runCatching {
+            val info = version.getVersionInfo()
+            val prepared = KroxClientBundler.cachedPrepared
+                ?: KroxClientBundler.getPreparedFile(activity).takeIf { it.exists() }
+                ?: KroxClientBundler.prepareFromAssets(activity)
+            KroxClientBundler.deployIfCompatible(
+                version.getGameDir(),
+                info?.minecraftVersion,
+                info?.loaderInfo?.loader?.displayName,
+                prepared
+            )
+        }
 
         //jna
         jnaDir = gameManifest.libraries?.find { library ->
@@ -210,12 +225,22 @@ class GameLauncher(
         RendererPluginManager.selectedRendererPlugin?.let { renderer ->
             val libs by renderer.getDlopenLibrary()
             libs.forEach { libPath ->
-                ZLBridge.dlopen(libPath)
+                val resolved = findInLdLibPath(libPath)
+                if (File(resolved).exists()) {
+                    ZLBridge.dlopen(resolved)
+                } else {
+                    Logger.error(TAG, "Renderer library not found: $libPath (resolved: $resolved)")
+                }
             }
         }
 
         val rendererLib = loadGraphicsLibrary() ?: return
-        if (!ZLBridge.dlopen(rendererLib) && !ZLBridge.dlopen(findInLdLibPath(rendererLib))) {
+        val resolvedRenderer = findInLdLibPath(rendererLib)
+        if (!File(resolvedRenderer).exists()) {
+            Logger.error(TAG, "Renderer library $rendererLib not found in library path.")
+            return
+        }
+        if (!ZLBridge.dlopen(resolvedRenderer)) {
             Logger.error(TAG, "Failed to load renderer $rendererLib")
         }
     }

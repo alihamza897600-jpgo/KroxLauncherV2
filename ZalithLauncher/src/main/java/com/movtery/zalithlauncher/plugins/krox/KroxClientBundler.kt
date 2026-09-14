@@ -12,7 +12,9 @@ import java.security.MessageDigest
 object KroxClientBundler {
     const val ASSET_PATH = "krox/krox-client.jar"
     const val MARKER_NAME = ".krox-client.marker"
-    const val VERSION_FALLBACK = "0.1.0"
+    const val VERSION_FALLBACK = "1.0.0"
+    @Volatile var cachedPrepared: File? = null
+        private set
 
     enum class State { BUNDLED, PREPARED, WAITING, DETECTED, DEPLOYED, VERIFIED }
 
@@ -35,6 +37,13 @@ object KroxClientBundler {
     }
 
     /** Copy from assets to internal prepared file (PREPARED). Returns prepared file or null. */
+    fun getPreparedFile(context: Context, version: String = VERSION_FALLBACK): File {
+        cachedPrepared?.takeIf { it.exists() }?.let { return it }
+        val f = File(context.filesDir, "krox/krox-client-$version.jar")
+        if (f.exists()) { cachedPrepared = f; return f }
+        return f
+    }
+
     fun prepareFromAssets(context: Context, version: String = VERSION_FALLBACK): File? {
         return try {
             val bytes = context.assets.open(ASSET_PATH).readBytes()
@@ -43,8 +52,9 @@ object KroxClientBundler {
             out.parentFile?.mkdirs()
             // idempotent: skip if same sha
             val sha = sha256(bytes)
-            if (out.exists() && sha256(out.readBytes()) == sha) return out
+            if (out.exists() && sha256(out.readBytes()) == sha) { cachedPrepared = out; return out }
             out.writeBytes(bytes)
+            cachedPrepared = out
             out
         } catch (_: Exception) { null }
     }

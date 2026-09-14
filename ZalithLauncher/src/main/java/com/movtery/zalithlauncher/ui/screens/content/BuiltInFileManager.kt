@@ -1574,7 +1574,7 @@ private fun PropertiesDialog(files: List<File>, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = { onDismiss() }) { Text(stringResource(R.string.file_manager_properties_close)) }
         }
-    })
+    )
 }
 
 @Composable
